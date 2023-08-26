@@ -5,7 +5,7 @@ namespace HenryMeds.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProviderController : Controller
+public class ProviderController : ControllerBase
 {
     private readonly ApiDbContext _context;
 
@@ -20,6 +20,10 @@ public class ProviderController : Controller
     [HttpGet]
     public IEnumerable<Provider> Get()
     {
+        if (_context.Providers == null)
+        {
+            return new List<Provider>();
+        }
         var providers = _context.Providers.ToList();
         return providers;
     }
