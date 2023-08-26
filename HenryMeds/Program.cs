@@ -1,5 +1,6 @@
 using HenryMeds.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,17 @@ builder.Services.AddDbContext<ApiDbContext>(options =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opts =>
+{
+    opts.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Henry Meds API",
+        Description = "An ASP.NET Core Web API for managing Provider availability and Client Appointments",
+    });
+    opts.EnableAnnotations();
+});
+
 
 var app = builder.Build();
 
