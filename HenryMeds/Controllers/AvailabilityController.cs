@@ -16,26 +16,33 @@ public class AvailabilityController : ControllerBase
     }
 
     /// <summary>
-    /// Returns all availabilities.
-    /// TODO: add filtering by provider and date, and pagination or at least a limit.
-    /// TODO: left outer join to get only availabilities that don't have an appointment.
+    /// Retrieves all available appointment slots that are not already reserved or on hold.
+    /// /// TODO: add filtering by provider and date, and pagination or at least a limit.
     /// </summary>
-    /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AvailabilityDto>>> GetOpenAvailabilities()
+    public async Task<ActionResult<IEnumerable<AvailabilityDto>>> GetOpenAvailabilitiesSlots()
     {
-        if (_context.Availabilities == null)
+        if (_context.Appointments == null || _context.Availabilities == null)
         {
             return new List<AvailabilityDto>();
         }
 
-        return _context.Availabilities.Select(a => new AvailabilityDto
-        {
-            Id = a.Id,
-            StartTime = a.Start,
-            EndTime = a.End,
-            ProviderId = a.Provider.Id,
-        }).ToList();
+        var thirtyMinutesAgo = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30));
+        var availabilities = _context.Availabilities
+            .Where(a => !_context.Appointments
+                .Any(appt => appt.Availabilities.Any(availability => availability.Id ==a.Id) &&
+                             (appt.Status == AppointmentStatus.Confirmed ||
+                              (appt.Status == AppointmentStatus.Requested && appt.RequestExpires < thirtyMinutesAgo))))
+            .Select(a => new AvailabilityDto()
+            {
+                Id = a.Id,
+                StartTime = a.Start,
+                EndTime = a.End,
+                ProviderId = a.Provider.Id,
+            })
+            .ToList();
+
+        return availabilities;
     }
 
     /// <summary>
